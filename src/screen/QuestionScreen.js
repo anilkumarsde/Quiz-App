@@ -23,13 +23,13 @@ const QuestionScreen = () => {
   const [questionIdx, setQuestionIdx] = useState(0);
   const [selectedAns, setSelctedAns] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [timerCount, setTimerCount] = useState(15);
+  const [timerCount, setTimerCount] = useState(30);
   const skipCount = useSelector(state => state.counter.skipCount);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   //MoveNextQuestionHandler
   const moveNxtHandler = () => {
-    setTimerCount(15);
+    setTimerCount(30);
     if (questionIdx !== quizQuestions.length - 1) {
       if (selectedAns === null) {
         dispatch(handelSkipCount(skipCount + 1));
@@ -56,17 +56,26 @@ const QuestionScreen = () => {
     }
   };
 
+  // timer for each questions
+
   useEffect(() => {
     let intervalId = setInterval(() => {
       if (timerCount > 0 && !selectedAns) {
         setTimerCount(pre => pre - 1);
       }
       if (timerCount === 0) {
-        Alert.alert('TimeOut');
+        setModalVisible(true);
       }
       return clearInterval(intervalId);
     }, 1000);
   }, [timerCount, selectedAns]);
+
+  // modalHandler for nextQuestion
+
+  const modalHandler = () => {
+    moveNxtHandler();
+    setModalVisible(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -101,11 +110,12 @@ const QuestionScreen = () => {
                   styles.optionBtn,
                   {
                     backgroundColor:
-                      selectedAns == idx
-                        ? quizQuestions[questionIdx].correctAnswer ===
-                          selectedAns
-                          ? '#8ac926'
-                          : 'red'
+                      quizQuestions[questionIdx].correctAnswer === idx &&
+                      selectedAns
+                        ? 'green'
+                        : quizQuestions[questionIdx].correctAnswer !=
+                            selectedAns && idx === selectedAns
+                        ? 'red'
                         : 'white',
                   },
                 ]}
@@ -122,11 +132,24 @@ const QuestionScreen = () => {
 
         {/* Next question btn */}
         <View style={styles.nextQBtnWrapper}>
-          <TouchableOpacity style={styles.nextBtn} onPress={moveNxtHandler}>
+          <TouchableOpacity
+            style={styles.nextBtn}
+            onPress={() => modalHandler()}>
             <Text style={styles.nextBtnTxt}>NEXT</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
+      <Modal
+        isVisible={isModalVisible}
+        animationIn={'zoomIn'}
+        animationInTiming={1000}>
+        <View style={styles.popUpModal}>
+          <Text style={styles.optionTxt}>Oops TimeOut</Text>
+          <TouchableOpacity style={styles.nextModalBtn} onPress={modalHandler}>
+            <Text style={styles.btntxt}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -156,7 +179,6 @@ const styles = StyleSheet.create({
   optionWrapper: {
     marginTop: height * 0.05,
     height: height * 0.3,
-    // width: width / 2,
     marginHorizontal: width * 0.05,
   },
   optionBtn: {
@@ -170,7 +192,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     fontSize: width * 0.032,
     color: 'black',
-    // textAlign: 'center',
     textAlign: 'left',
   },
   nextQBtnWrapper: {
@@ -190,9 +211,6 @@ const styles = StyleSheet.create({
   },
   timerWrapper: {
     backgroundColor: '#ede0d4',
-    // position: 'absolute',
-    // right: width * 0.1,
-    // marginTop: height * 0.01,
     height: height * 0.04,
     width: width * 0.15,
     justifyContent: 'center',
@@ -209,5 +227,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginHorizontal: width * 0.05,
     marginTop: height * 0.02,
+  },
+  popUpModal: {
+    height: height * 0.25,
+    width: width * 0.9,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: width * 0.08,
+  },
+  nextModalBtn: {
+    backgroundColor: 'red',
+    paddingVertical: height * 0.01,
+    paddingHorizontal: width * 0.04,
+    marginTop: height * 0.01,
+    borderRadius: width * 0.02,
+  },
+  btntxt: {
+    fontSize: width * 0.032,
+    fontFamily: fonts.Bold,
+    color: 'white',
   },
 });
